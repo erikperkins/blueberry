@@ -87,10 +87,10 @@ class MnistNetwork:
 
     self.saver = tf.train.Saver()
 
-  def predict(self):
+  def predict(self, id = None):
     with tf.Session() as session:
       self.saver.restore(session, './tutorial-variables.ckpt')
-      id = random.randint(0, 10000)
+      id = id or random.randint(0, 10000)
       datum = expand_dims(MNIST.test.images[id], axis = 0)
       output = session.run(
         self.predict_operation,
