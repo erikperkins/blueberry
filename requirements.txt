@@ -1,1 +1,5 @@
 Flask
+tensorflow
+Pillow
+matplotlib
+numpy
