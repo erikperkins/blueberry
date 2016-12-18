@@ -87,3 +87,8 @@ ENV/
 
 # Rope project settings
 .ropeproject
+
+# Machine learning data
+/MNIST_data/*
+/*.ckpt
+/*.ckpt.meta
