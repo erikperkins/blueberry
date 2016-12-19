@@ -1,34 +1,46 @@
 from flask import Flask, Response, send_file, jsonify
 from StringIO import StringIO
-import json
+from network.mnist import MnistNetwork, digit
 
-from tensorflow.examples.tutorials.mnist import input_data
-from PIL import Image
-from pylab import gray
-from numpy import random, uint8
+import base64
+import cStringIO
 
 app = Flask(__name__)
-MNIST = input_data.read_data_sets("./MNIST_data/", one_hot = True)
 
 @app.route("/")
-def hello():
-  return "Hello, World!"
+def root():
+  return "Hello, Flask!"
 
-@app.route("/names/<string:name>")
-def getName(name):
-  data = { 'name': name }
-  response = jsonify(data)
-  response.status_code = 200
-  response.headers['Link'] = 'http://www.backpasture.net'
+@app.route("/mnist/random")
+def mnist():
+  network = MnistNetwork()
+  id, prediction = network.predict()
+  response = """
+    <p>The neural network thinks <img src="image/%s"/> is %s.</p>
+  """ % (id, prediction)
   return response
 
-@app.route("/image", methods = ["GET"])
-def getImage():
-  id = random.randint(0, 10000)
-  record = MNIST.test.images[id]
-  array = record.reshape((28, 28))
-  image = Image.fromarray(uint8(255 * (1.0 - array)))
+@app.route("/mnist/<int:id>.json", methods = ["GET"])
+def getMnistJson(id):
+  network = MnistNetwork()
+  id, prediction = network.predict(id)
 
+  image = digit(id)
+  buffer = cStringIO.StringIO()
+  image.save(buffer, format="PNG")
+  encoded_image = base64.b64encode(buffer.getvalue())
+
+  data = {
+    'id': id, 
+    'prediction': prediction,
+    'url': "/mnist/image/%s" % id,
+    'image': encoded_image
+  }
+  return jsonify(data)
+
+@app.route("/mnist/image/<int:id>", methods = ["GET"])
+def getImage(id):
+  image = digit(id)
   io = StringIO()
   image.save(io, 'PNG')
   io.seek(0)
