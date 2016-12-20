@@ -24,22 +24,27 @@ def mnist():
 def getMnistJson(id):
   network = MnistNetwork()
   id, prediction = network.predict(id)
+  data = {
+    'id': id,
+    'prediction': prediction,
+    'url': "/mnist/image/%s" % id,
+  }
+  return jsonify(data)
 
+@app.route("/mnist/image/<int:id>.json")
+def getMnistImageJson(id):
   image = digit(id)
   buffer = cStringIO.StringIO()
   image.save(buffer, format="PNG")
   encoded_image = base64.b64encode(buffer.getvalue())
-
   data = {
-    'id': id, 
-    'prediction': prediction,
-    'url': "/mnist/image/%s" % id,
+    'id': id,
     'image': encoded_image
   }
   return jsonify(data)
 
 @app.route("/mnist/image/<int:id>", methods = ["GET"])
-def getImage(id):
+def getMnistImage(id):
   image = digit(id)
   io = StringIO()
   image.save(io, 'PNG')

@@ -17,7 +17,7 @@ class MnistNetwork:
   def build(self):
     self.PROB = tf.placeholder(tf.float32)
 
-    def layer(inputs, kernel_shape, bias_shape, multiply, scale):
+    def layer(inputs, kernel_shape, bias_shape, multiply, activate):
       self.weights = tf.get_variable(
         "weights",
         kernel_shape,
@@ -28,7 +28,7 @@ class MnistNetwork:
         bias_shape,
         initializer = tf.constant_initializer(0.0)
       )
-      return scale(multiply(inputs, self.weights) + self.biases)
+      return activate(multiply(inputs, self.weights) + self.biases)
 
     def max_pool(h):
       return tf.nn.max_pool(
@@ -54,23 +54,23 @@ class MnistNetwork:
 
     def apply_network(inputs):
       with tf.variable_scope("conv1") as scope:
-        scale = lambda a: max_pool(tf.nn.relu(a))
-        layer1 = layer(inputs, [5, 5, 1, 32], [32], conv, scale)
+        activate = lambda a: max_pool(tf.nn.relu(a))
+        layer1 = layer(inputs, [5, 5, 1, 32], [32], conv, activate)
         scope.reuse_variables()
 
       with tf.variable_scope("conv2") as scope:
-        scale = lambda a: flatten(max_pool(tf.nn.relu(a)))
-        layer2 = layer(layer1, [5, 5, 32, 64], [64], conv, scale)
+        activate = lambda a: flatten(max_pool(tf.nn.relu(a)))
+        layer2 = layer(layer1, [5, 5, 32, 64], [64], conv, activate)
         scope.reuse_variables()
 
       with tf.variable_scope("conn1"):
-        scale = lambda a: dropout(tf.nn.relu(a), self.PROB)
-        layer3 = layer(layer2, [7 * 7 * 64, 1024], [1024], tf.matmul, scale)
+        activate = lambda a: dropout(tf.nn.relu(a), self.PROB)
+        layer3 = layer(layer2, [7 * 7 * 64, 1024], [1024], tf.matmul, activate)
         scope.reuse_variables()
 
       with tf.variable_scope("conn2"):
-        scale = lambda a: a
-        output_layer = layer(layer3, [1024, 10], [10], tf.matmul, scale)
+        activate = lambda a: a
+        output_layer = layer(layer3, [1024, 10], [10], tf.matmul, activate)
         scope.reuse_variables()
         return output_layer
 
