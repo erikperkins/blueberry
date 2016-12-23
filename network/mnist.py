@@ -15,6 +15,7 @@ class MnistNetwork:
     self.build()
 
   def build(self):
+    tf.reset_default_graph()
     self.PROB = tf.placeholder(tf.float32)
 
     def layer(inputs, kernel_shape, bias_shape, multiply, activate):
@@ -97,4 +98,5 @@ class MnistNetwork:
         feed_dict = { self.x: datum, self.PROB: 1.0 }
       )
       (prediction,) = [ p for p in tf.argmax(output, 1).eval() ]
+      session.close()
       return (id, prediction)
