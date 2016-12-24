@@ -29,7 +29,7 @@ def getMnistJson(id):
   network = MnistNetwork()
 
   input = mnist_input(id)
-  id, prediction = network.predict(input)
+  prediction = network.predict(input)
 
   image = digit(id)
   buffer = cStringIO.StringIO()
@@ -55,7 +55,7 @@ def postMnistJson():
   blob = base64.urlsafe_b64decode(image_ascii)
 
   input = mnist_array(blob)
-  id, result = network.predict(input)
+  result = network.predict(input)
 
   data = {
     "result": result

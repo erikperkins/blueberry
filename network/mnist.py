@@ -115,4 +115,4 @@ class MnistNetwork:
       )
       (prediction,) = [ p for p in tf.argmax(output, 1).eval() ]
       session.close()
-      return (id, prediction)
+      return prediction
