@@ -1,28 +1,24 @@
 import tensorflow as tf
 from tensorflow.examples.tutorials.mnist import input_data
-from PIL import Image
 from numpy import random, expand_dims, uint8, array, shape
-
-from StringIO import StringIO
+from PIL import Image
 
 MNIST = input_data.read_data_sets("./MNIST_data/", one_hot = True)
 
-def digit(id):
+def digit_image(id):
   record = MNIST.test.images[id]
   array = record.reshape((28, 28))
   return Image.fromarray(uint8(255 * (1.0 - array)))
 
-# Maybe consolidate these two functions? Both return an MNIST input vector
-def mnist_array(blob):
-  bytes = bytearray(blob)
-  image = Image.open(StringIO(bytes))
-  image.thumbnail((28, 28), Image.ANTIALIAS)
-  image.convert("L")
-  image_array = array(image)[:,:,3] / 255.0
-  return image_array.reshape((784,))
-
-def mnist_input(id):
-  return MNIST.test.images[id]
+def mnist_input(id = None, buffer = None):
+  if id:
+    return MNIST.test.images[id]
+  if buffer:
+    image = Image.open(buffer)
+    image.thumbnail((28, 28), Image.ANTIALIAS)
+    image.convert("L")
+    image_array = array(image)[:,:,3] / 255.0
+    return image_array.reshape((784,))
 
 
 class MnistNetwork:
@@ -96,23 +92,21 @@ class MnistNetwork:
 
     with tf.variable_scope("images") as scope:
       try:
-        self.predict_operation = apply_network(self.x_image)
+        self.classify_operation = apply_network(self.x_image)
       except ValueError:
         scope.reuse_variables()
-        self.predict_operation = apply_network(self.x_image)
+        self.classify_operation = apply_network(self.x_image)
 
     self.saver = tf.train.Saver()
 
-  def predict(self, input):
+  def classify(self, input):
     with tf.Session() as session:
       self.saver.restore(session, './tutorial-variables.ckpt')
-      # id = id or random.randint(0, 10000)
-      # datum = expand_dims(MNIST.test.images[id], axis = 0)
       datum = expand_dims(input, axis = 0)
       output = session.run(
-        self.predict_operation,
+        self.classify_operation,
         feed_dict = { self.x: datum, self.PROB: 1.0 }
       )
-      (prediction,) = [ p for p in tf.argmax(output, 1).eval() ]
+      (classification,) = [ p for p in tf.argmax(output, 1).eval() ]
       session.close()
-      return prediction
+      return classification

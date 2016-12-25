@@ -1,88 +1,58 @@
-from flask import Flask, Response, send_file, jsonify, request
+from flask import Flask, Response, send_file, jsonify, request, make_response
+from network.mnist import MnistNetwork, digit_image, mnist_input
+from base64 import b64encode, b64decode
 from StringIO import StringIO
-from network.mnist import MnistNetwork, digit, mnist_array, mnist_input
-
-
-import json
-from PIL import Image
-
-import base64
 import cStringIO
 
+
 app = Flask(__name__)
+
 
 @app.route("/")
 def root():
   return "Hello, Flask!\n"
 
-@app.route("/mnist/random")
-def mnist():
-  network = MnistNetwork()
-  id, prediction = network.predict()
-  response = """
-    <p>The neural network thinks <img src="image/%s"/> is %s.</p>
-  """ % (id, prediction)
-  return response
 
 @app.route("/mnist/<int:id>.json", methods = ["GET"])
-def getMnistJson(id):
-  network = MnistNetwork()
-
-  input = mnist_input(id)
-  prediction = network.predict(input)
-
-  image = digit(id)
+def getMnistClassificationJson(id):
+  image = digit_image(id)
   buffer = cStringIO.StringIO()
-  image.save(buffer, format="PNG")
-  encoded_image = base64.b64encode(buffer.getvalue())
+  image.save(buffer, format = "PNG")
 
-  data = {
-    'id': id,
-    'prediction': prediction,
-    'url': "/mnist/image/%s" % id,
-    'image': encoded_image
-  }
-  return jsonify(data)
+  b64_image = b64encode(buffer.getvalue())
+  classification = MnistNetwork().classify(mnist_input(id = id))
+  response = { 'new': False, 'classification': classification, 'image': b64_image }
+  return jsonify(response)
 
-#######################
 
-@app.route("/mnist/classify.json", methods = ["GET"])
-def postMnistJson():
-  network = MnistNetwork()
+@app.route("/mnist/new/classification.json", methods = ["POST"])
+def postMnistNewClassification():
+  b64_image = request.get_json()['image'].encode('ascii')
+  buffer = StringIO(bytearray(b64decode(b64_image)))
 
-  image_json = request.args.get('image')
-  image_ascii = json.dumps(image_json).encode('ascii')
-  blob = base64.urlsafe_b64decode(image_ascii)
+  classification = MnistNetwork().classify(mnist_input(buffer = buffer))
+  return jsonify({ 'new': True, 'classification': classification })
 
-  input = mnist_array(blob)
-  result = network.predict(input)
 
-  data = {
-    "result": result
-  }
-  return jsonify(data)
-
-#########################
-
-@app.route("/mnist/image/<int:id>.json")
+@app.route("/mnist/image/<int:id>.json", methods = ["GET"])
 def getMnistImageJson(id):
-  image = digit(id)
+  image = digit_image(id)
   buffer = cStringIO.StringIO()
-  image.save(buffer, format="PNG")
-  encoded_image = base64.b64encode(buffer.getvalue())
-  data = {
-    'id': id,
-    'image': encoded_image
-  }
-  return jsonify(data)
+  image.save(buffer, format = "PNG")
 
-@app.route("/mnist/image/<int:id>", methods = ["GET"])
-def getMnistImage(id):
-  image = digit(id)
+  encoded_image = b64encode(buffer.getvalue())
+  return jsonify({ 'id': id, 'image': encoded_image })
+
+
+@app.route("/mnist/image/<int:id>.png", methods = ["GET"])
+def getMnistImagePng(id):
+  image = digit_image(id)
   io = StringIO()
+
   image.save(io, 'PNG')
   io.seek(0)
   return send_file(io, mimetype = "image/png")
+
 
 if __name__ == "__main__":
   app.run(host = "0.0.0.0", port = 3002, debug = True)
