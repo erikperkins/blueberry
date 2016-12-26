@@ -1,55 +1,58 @@
-from flask import Flask, Response, send_file, jsonify
+from flask import Flask, Response, send_file, jsonify, request, make_response
+from network.mnist import MnistNetwork, digit_image, mnist_input
+from base64 import b64encode, b64decode
 from StringIO import StringIO
-from network.mnist import MnistNetwork, digit
-
-import base64
 import cStringIO
 
+
 app = Flask(__name__)
+
 
 @app.route("/")
 def root():
   return "Hello, Flask!\n"
 
-@app.route("/mnist/random")
-def mnist():
-  network = MnistNetwork()
-  id, prediction = network.predict()
-  response = """
-    <p>The neural network thinks <img src="image/%s"/> is %s.</p>
-  """ % (id, prediction)
-  return response
 
 @app.route("/mnist/<int:id>.json", methods = ["GET"])
-def getMnistJson(id):
-  network = MnistNetwork()
-  id, prediction = network.predict(id)
-  data = {
-    'id': id,
-    'prediction': prediction,
-    'url': "/mnist/image/%s" % id,
-  }
-  return jsonify(data)
-
-@app.route("/mnist/image/<int:id>.json")
-def getMnistImageJson(id):
-  image = digit(id)
+def getMnistClassificationJson(id):
+  image = digit_image(id)
   buffer = cStringIO.StringIO()
-  image.save(buffer, format="PNG")
-  encoded_image = base64.b64encode(buffer.getvalue())
-  data = {
-    'id': id,
-    'image': encoded_image
-  }
-  return jsonify(data)
+  image.save(buffer, format = "PNG")
 
-@app.route("/mnist/image/<int:id>", methods = ["GET"])
-def getMnistImage(id):
-  image = digit(id)
+  b64_image = b64encode(buffer.getvalue())
+  classification = MnistNetwork().classify(mnist_input(id = id))
+  response = { 'new': False, 'classification': classification, 'image': b64_image }
+  return jsonify(response)
+
+
+@app.route("/mnist/new/classification.json", methods = ["POST"])
+def postMnistNewClassification():
+  b64_image = request.get_json()['image'].encode('ascii')
+  buffer = StringIO(bytearray(b64decode(b64_image)))
+
+  classification = MnistNetwork().classify(mnist_input(buffer = buffer))
+  return jsonify({ 'new': True, 'classification': classification })
+
+
+@app.route("/mnist/image/<int:id>.json", methods = ["GET"])
+def getMnistImageJson(id):
+  image = digit_image(id)
+  buffer = cStringIO.StringIO()
+  image.save(buffer, format = "PNG")
+
+  encoded_image = b64encode(buffer.getvalue())
+  return jsonify({ 'id': id, 'image': encoded_image })
+
+
+@app.route("/mnist/image/<int:id>.png", methods = ["GET"])
+def getMnistImagePng(id):
+  image = digit_image(id)
   io = StringIO()
+
   image.save(io, 'PNG')
   io.seek(0)
   return send_file(io, mimetype = "image/png")
+
 
 if __name__ == "__main__":
   app.run(host = "0.0.0.0", port = 3002, debug = True)
