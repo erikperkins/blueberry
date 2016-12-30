@@ -2,6 +2,7 @@ import tensorflow as tf
 from tensorflow.examples.tutorials.mnist import input_data
 from numpy import random, expand_dims, uint8, array, shape
 from PIL import Image
+from PIL.ImageOps import expand
 
 MNIST = input_data.read_data_sets("./MNIST_data/", one_hot = True)
 
@@ -15,11 +16,22 @@ def mnist_input(id = None, buffer = None):
     return MNIST.test.images[id]
   if buffer:
     image = Image.open(buffer)
-    image.thumbnail((28, 28), Image.ANTIALIAS)
-    image.convert("L")
-    image_array = array(image)[:,:,3] / 255.0
+    normalized = normalize(image)
+
+    image_array = array(normalized)[:,:,3] / 255.0
     return image_array.reshape((784,))
 
+def normalize(image):
+    cropped = image.crop(image.getbbox())
+    padded = Image.new('RGBA', (max(cropped.size), max(cropped.size)))
+    size = max(cropped.size)
+    offset = ((size - cropped.width)/2, (size - cropped.height)/2)
+    padded.paste(cropped, offset) # add more padding
+
+    normalized = expand(padded, padded.height/10)
+    normalized.convert('LA')
+    normalized.thumbnail((28, 28), Image.ANTIALIAS)
+    return normalized
 
 class MnistNetwork:
   def __init__(self):
