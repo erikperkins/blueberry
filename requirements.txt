@@ -3,3 +3,4 @@ tensorflow
 Pillow
 matplotlib
 numpy
+uwsgi
