@@ -1,11 +1,25 @@
 from flask import Flask, Response, send_file, jsonify, request, make_response
 from network.mnist import MnistNetwork, digit_image, mnist_input
 from base64 import b64encode, b64decode
+from messaging.tasks import make_celery
 from StringIO import StringIO
+from time import sleep
 import cStringIO
 
 
 app = Flask(__name__)
+
+app.config.update(
+  CELERY_BROKER_URL = 'amqp://guest@rabbitmq:5672//',
+  CELERY_RESULT_BACKEND = 'rpc'
+)
+celery = make_celery(app)
+
+
+@celery.task()
+def add(a, b):
+  sleep(10)
+  return a + b
 
 
 @app.route("/")
