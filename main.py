@@ -10,7 +10,7 @@ import cStringIO
 app = Flask(__name__)
 
 app.config.update(
-  CELERY_BROKER_URL = 'amqp://guest@rabbitmq:5672//',
+  CELERY_BROKER_URL = 'amqp://guest@rabbitmq:5672',
   CELERY_RESULT_BACKEND = 'rpc'
 )
 celery = make_celery(app)
