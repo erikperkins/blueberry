@@ -1,0 +1,9 @@
+version: '2'
+
+services:
+
+  flask:
+    image: erikperkins/flask_app
+    command: uwsgi --ini uwsgi.ini
+    ports:
+      - 80:80
