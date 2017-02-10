@@ -1,7 +1,10 @@
 Flask
-tensorflow
+uwsgi
+celery
 Pillow
 matplotlib
 numpy
-uwsgi
-celery
+scipy
+scikit-learn
+pandas
+tensorflow
