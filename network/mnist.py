@@ -22,16 +22,16 @@ def mnist_input(id = None, buffer = None):
     return image_array.reshape((784,))
 
 def normalize(image):
-    cropped = image.crop(image.getbbox())
-    padded = Image.new('RGBA', (max(cropped.size), max(cropped.size)))
-    size = max(cropped.size)
-    offset = ((size - cropped.width)/2, (size - cropped.height)/2)
-    padded.paste(cropped, offset) # add more padding
+  cropped = image.crop(image.getbbox())
+  padded = Image.new('RGBA', (max(cropped.size), max(cropped.size)))
+  size = max(cropped.size)
+  offset = ((size - cropped.width)/2, (size - cropped.height)/2)
+  padded.paste(cropped, offset) # add more padding
 
-    normalized = expand(padded, padded.height/10)
-    normalized.convert('LA')
-    normalized.thumbnail((28, 28), Image.ANTIALIAS)
-    return normalized
+  normalized = expand(padded, padded.height/10)
+  normalized.convert('LA')
+  normalized.thumbnail((28, 28), Image.ANTIALIAS)
+  return normalized
 
 class MnistNetwork:
   def __init__(self):
@@ -56,18 +56,18 @@ class MnistNetwork:
 
     def max_pool(h):
       return tf.nn.max_pool(
-          h,
-          ksize = [1, 2, 2, 1],
-          strides = [1, 2, 2, 1],
-          padding = 'SAME'
+        h,
+        ksize = [1, 2, 2, 1],
+        strides = [1, 2, 2, 1],
+        padding = 'SAME'
       )
 
     def conv(inputs, weights):
       return tf.nn.conv2d(
-          inputs,
-          weights,
-          strides = [1, 1, 1, 1],
-          padding = 'SAME'
+        inputs,
+        weights,
+        strides = [1, 1, 1, 1],
+        padding = 'SAME'
       )
 
     def flatten(h):
