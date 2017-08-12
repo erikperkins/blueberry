@@ -1,2 +1,2 @@
-This is the Python-based component of the whirlwhim application. It hosts
+This is the Python-based component of the Data Punnet application. It hosts
 TensorFlow neural network code.
