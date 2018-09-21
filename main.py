@@ -13,13 +13,6 @@ app.config.update(
   CELERY_BROKER_URL = 'amqp://guest:guest@rabbitmq:5672',
   CELERY_RESULT_BACKEND = 'rpc'
 )
-#celery = make_celery(app)
-
-#@celery.task()
-#def add(a, b):
-#  sleep(10)
-#  return a + b
-
 
 @app.route("/")
 def root():

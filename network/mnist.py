@@ -26,7 +26,7 @@ def normalize(image):
   padded = Image.new('RGBA', (max(cropped.size), max(cropped.size)))
   size = max(cropped.size)
   offset = ((size - cropped.width)/2, (size - cropped.height)/2)
-  padded.paste(cropped, offset) # add more padding
+  padded.paste(cropped, offset)
 
   normalized = expand(padded, padded.height/10)
   normalized.convert('LA')
