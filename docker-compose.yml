@@ -1,0 +1,8 @@
+version: '2'
+services:
+  blueberry:
+    image: erikperkins/blueberry
+    command: uwsgi --ini uwsgi.ini
+    restart: on-failure
+    ports:
+      - 80:80

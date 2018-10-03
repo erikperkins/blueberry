@@ -1,4 +1,4 @@
-# flask_app
+# blueberry
 Service for machine learning applications
 
 To get data from S3, do
