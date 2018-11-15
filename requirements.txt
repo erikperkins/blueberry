@@ -5,3 +5,4 @@ matplotlib==1.5.3
 numpy==1.11.3
 uwsgi==2.0.14
 celery==4.0.1
+pytest
