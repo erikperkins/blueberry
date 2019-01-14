@@ -27,7 +27,7 @@ def getMnistClassificationJson(id):
 
   b64_image = b64encode(buffer.getvalue())
   classification = MnistNetwork().classify(mnist_input(id = id))
-  response = { 'new': False, 'classification': classification, 'image': b64_image }
+  response = { 'classification': classification, 'image': b64_image }
   return jsonify(response)
 
 
@@ -37,7 +37,7 @@ def postMnistNewClassification():
   buffer = StringIO(bytearray(b64decode(b64_image)))
 
   classification = MnistNetwork().classify(mnist_input(buffer = buffer))
-  return jsonify({ 'new': True, 'classification': classification })
+  return jsonify({ 'classification': classification })
 
 
 @app.route("/mnist/image/<int:id>.json", methods = ["GET"])
