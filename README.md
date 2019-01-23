@@ -3,9 +3,10 @@ This is the Python-based component of the Data Punnet application. It hosts
 TensorFlow neural network code.
 
 ## Build
+Activate the environment locally with `virtualenv`
+```
+$ source env/bin/activate
+```
+This will prepend the `bash` shell with `(env)` to indicate that `virtualenv` is active. Use `deactivate` to deactivate `virtualenv` in the `bash` shell.
 
 ## Test
-Run tests with
-```
-$ pytest
-```

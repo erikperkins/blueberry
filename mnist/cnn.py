@@ -33,7 +33,7 @@ def normalize(image):
   normalized.thumbnail((28, 28), Image.ANTIALIAS)
   return normalized
 
-class MnistNetwork:
+class Classifier():
   def __init__(self):
     self.build()
 
@@ -112,7 +112,11 @@ class MnistNetwork:
     self.saver = tf.train.Saver()
 
   def classify(self, input):
-    with tf.Session() as session:
+    config = tf.ConfigProto()
+    config.intra_op_parallelism_threads = 1
+    config.inter_op_parallelism_threads = 1
+
+    with tf.Session(config = config) as session:
       self.saver.restore(session, './tutorial-variables.ckpt')
       datum = expand_dims(input, axis = 0)
       output = session.run(
@@ -121,4 +125,5 @@ class MnistNetwork:
       )
       (classification,) = [ p for p in tf.argmax(output, 1).eval() ]
       session.close()
+
       return classification
