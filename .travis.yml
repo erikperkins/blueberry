@@ -6,4 +6,5 @@ install:
   - pip install -r requirements.txt
 
 script:
-  - pytest
+  - python -m mnist.test.test_cnn
+  - python -m blueberry.test.test_main
