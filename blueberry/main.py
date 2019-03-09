@@ -7,8 +7,6 @@ import cStringIO
 
 app = Flask(__name__)
 
-cnn = Classifier()
-
 @app.route("/")
 def root():
   return "Hello, Flask!\n"
@@ -20,7 +18,7 @@ def getMnistClassification(id):
   image.save(buffer, format = "PNG")
 
   b64_image = b64encode(buffer.getvalue())
-  classification = cnn.classify(mnist_input(id = id))
+  classification = Classifier().classify(mnist_input(id = id))
 
   response = { 'classification': classification, 'image': b64_image }
   return jsonify(response)
@@ -30,7 +28,7 @@ def postMnistClassification():
   b64_image = request.get_json()['image'].encode('ascii')
   buffer = StringIO(bytearray(b64decode(b64_image)))
 
-  classification = cnn.classify(mnist_input(buffer = buffer))
+  classification = Classifier().classify(mnist_input(buffer = buffer))
   return jsonify({ 'classification': classification })
 
 @app.route("/mnist/image/<int:id>.png", methods = ["GET"])
