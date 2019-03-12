@@ -104,26 +104,25 @@ class Classifier():
 
     with tf.variable_scope("images") as scope:
       try:
-        self.classify_operation = apply_network(self.x_image)
+        self.graph = apply_network(self.x_image)
       except ValueError:
         scope.reuse_variables()
-        self.classify_operation = apply_network(self.x_image)
+        self.graph = apply_network(self.x_image)
 
     self.saver = tf.train.Saver()
 
   def classify(self, input):
     config = tf.ConfigProto()
-    config.intra_op_parallelism_threads = 1
-    config.inter_op_parallelism_threads = 1
+    config.intra_op_parallelism_threads = 2
+    config.inter_op_parallelism_threads = 2
 
     with tf.Session(config = config) as session:
       self.saver.restore(session, './tutorial-variables.ckpt')
       datum = expand_dims(input, axis = 0)
       output = session.run(
-        self.classify_operation,
+        self.graph,
         feed_dict = { self.x: datum, self.PROB: 1.0 }
       )
       (classification,) = [ p for p in tf.argmax(output, 1).eval() ]
-      session.close()
 
       return classification
