@@ -1,6 +1,6 @@
 import tensorflow as tf
 from tensorflow.examples.tutorials.mnist import input_data
-from numpy import random, expand_dims, uint8, array, shape
+from numpy import random, expand_dims, uint8, array, shape, argmax
 from PIL import Image
 from PIL.ImageOps import expand
 
@@ -35,10 +35,10 @@ def normalize(image):
 
 class Classifier():
   def __init__(self):
+    tf.reset_default_graph()
     self.build()
 
   def build(self):
-    tf.reset_default_graph()
     self.PROB = tf.placeholder(tf.float32)
 
     def layer(inputs, kernel_shape, bias_shape, multiply, activate):
@@ -119,10 +119,12 @@ class Classifier():
     with tf.Session(config = config) as session:
       self.saver.restore(session, './tutorial-variables.ckpt')
       datum = expand_dims(input, axis = 0)
+
+      session.graph.finalize()
       output = session.run(
         self.graph,
         feed_dict = { self.x: datum, self.PROB: 1.0 }
       )
-      (classification,) = [ p for p in tf.argmax(output, 1).eval() ]
+      (classification,) = argmax(output, 1)
 
       return classification
