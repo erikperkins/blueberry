@@ -1,19 +1,20 @@
+import os
 import tensorflow as tf
-from tensorflow.examples.tutorials.mnist import input_data
+from tensorflow.keras.datasets.mnist import load_data
 from numpy import random, expand_dims, uint8, array, shape, argmax
 from PIL import Image
 from PIL.ImageOps import expand
 
-MNIST = input_data.read_data_sets("./MNIST_data/", one_hot = True)
+(_, (images, _)) = load_data(f'{os.getcwd()}/data/mnist.npz')
 
 def digit_image(id):
-  record = MNIST.test.images[id]
+  record = images[id]
   array = record.reshape((28, 28))
-  return Image.fromarray(uint8(255 * (1.0 - array)))
+  return Image.fromarray(255 - array)
 
 def mnist_input(id = None, buffer = None):
   if id:
-    return MNIST.test.images[id]
+    return images[id]
   if buffer:
     image = Image.open(buffer)
     normalized = normalize(image)
@@ -25,10 +26,10 @@ def normalize(image):
   cropped = image.crop(image.getbbox())
   padded = Image.new('RGBA', (max(cropped.size), max(cropped.size)))
   size = max(cropped.size)
-  offset = ((size - cropped.width)/2, (size - cropped.height)/2)
+  offset = (int((size - cropped.width)/2), int((size - cropped.height)/2))
   padded.paste(cropped, offset)
 
-  normalized = expand(padded, padded.height/10)
+  normalized = expand(padded, int(padded.height/10))
   normalized.convert('LA')
   normalized.thumbnail((28, 28), Image.ANTIALIAS)
   return normalized
@@ -104,10 +105,12 @@ class Classifier():
 
     with tf.variable_scope("images") as scope:
       try:
-        self.graph = apply_network(self.x_image)
+        self.tensor = apply_network(self.x_image)
+        self.graph = tf.get_default_graph()
       except ValueError:
         scope.reuse_variables()
-        self.graph = apply_network(self.x_image)
+        self.tensor = apply_network(self.x_image)
+        self.graph = tf.get_default_graph()
 
     self.saver = tf.train.Saver()
 
@@ -116,15 +119,15 @@ class Classifier():
     config.intra_op_parallelism_threads = 2
     config.inter_op_parallelism_threads = 2
 
-    with tf.Session(config = config) as session:
-      self.saver.restore(session, './tutorial-variables.ckpt')
-      datum = expand_dims(input, axis = 0)
-
+    with tf.Session(config = config, graph = self.graph) as session:
       session.graph.finalize()
+
+      self.saver.restore(session, f'{os.getcwd()}/data/mnist.ckpt')
+      datum = expand_dims(input, axis = 0).reshape(1, 784)
       output = session.run(
-        self.graph,
+        self.tensor,
         feed_dict = { self.x: datum, self.PROB: 1.0 }
       )
       (classification,) = argmax(output, 1)
 
-      return classification
+      return int(classification)
